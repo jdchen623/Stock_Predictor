@@ -6,48 +6,46 @@ import util
 import svm
 
 def main():
-    train_messages, train_labels = util.load_spam_dataset('../data/ds6_train.tsv')
-    val_messages, val_labels = util.load_spam_dataset('../data/ds6_val.tsv')
-    test_messages, test_labels = util.load_spam_dataset('../data/ds6_test.tsv')
+    def load_dataset(csv_path, label_col='y', add_intercept=False):
+        """Load dataset from a CSV file.
 
-    dictionary = create_dictionary(train_messages)
+        Args:
+             csv_path: Path to CSV file containing dataset.
+             label_col: Name of column to use as labels (should be 'y' or 'l').
+             add_intercept: Add an intercept entry to x-values.
 
-    util.write_json('./output/p06_dictionary', dictionary)
+        Returns:
+            xs: Numpy array of x-values (inputs).
+            ys: Numpy array of y-values (labels).
+        """
 
-    train_matrix = transform_text(train_messages, dictionary)
+        def add_intercept_fn(x):
+            global add_intercept
+            return add_intercept(x)
 
-    np.savetxt('./output/p06_sample_train_matrix', train_matrix[:100,:])
+        # Validate label_col argument
+        allowed_label_cols = ('y', 't')
+        if label_col not in allowed_label_cols:
+            raise ValueError('Invalid label_col: {} (expected {})'
+                             .format(label_col, allowed_label_cols))
 
-    val_matrix = transform_text(val_messages, dictionary)
-    test_matrix = transform_text(test_messages, dictionary)
+        # Load headers
+        with open(csv_path, 'r') as csv_fh:
+            headers = csv_fh.readline().strip().split(',')
 
-    naive_bayes_model = fit_naive_bayes_model(train_matrix, train_labels)
+        # Load features and labels
+        x_cols = [i for i in range(len(headers)) if headers[i].startswith('x')]
+        l_cols = [i for i in range(len(headers)) if headers[i] == label_col]
+        inputs = np.loadtxt(csv_path, delimiter=',', skiprows=1, usecols=x_cols)
+        labels = np.loadtxt(csv_path, delimiter=',', skiprows=1, usecols=l_cols)
 
-    naive_bayes_predictions = predict_from_naive_bayes_model(naive_bayes_model, test_matrix)
+        if inputs.ndim == 1:
+            inputs = np.expand_dims(inputs, -1)
 
-    np.savetxt('./output/p06_naive_bayes_predictions', naive_bayes_predictions)
+        if add_intercept:
+            inputs = add_intercept_fn(inputs)
 
-    naive_bayes_accuracy = np.mean(naive_bayes_predictions == test_labels)
-
-    print('Naive Bayes had an accuracy of {} on the testing set'.format(naive_bayes_accuracy))
-
-    top_5_words = get_top_five_naive_bayes_words(naive_bayes_model, dictionary)
-
-    print('The top 5 indicative words for Naive Bayes are: ', top_5_words)
-
-    util.write_json('./output/p06_top_indicative_words', top_5_words)
-
-    optimal_radius = compute_best_svm_radius(train_matrix, train_labels, val_matrix, val_labels, [0.01, 0.1, 1, 10])
-
-    util.write_json('./output/p06_optimal_radius', optimal_radius)
-
-    print('The optimal SVM radius was {}'.format(optimal_radius))
-
-    svm_predictions = svm.train_and_predict_svm(train_matrix, train_labels, test_matrix, optimal_radius)
-
-    svm_accuracy = np.mean(svm_predictions == test_labels)
-
-    print('The SVM model had an accuracy of {} on the testing set'.format(svm_accuracy, optimal_radius))
+        return inputs, labels
 
 if __name__ == "__main__":
     main()
