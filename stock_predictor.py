@@ -5,6 +5,9 @@ import numpy as np
 import util
 import svm
 
+def hello():
+    print("Hello!")
+    
 def get_words(message):
     """Get the normalized list of words from a message string.
 
@@ -18,6 +21,8 @@ def get_words(message):
     Returns:
        The list of normalized words from the message.
     """
+
+    # HELLO!!!
 
     # *** START CODE HERE ***
     words = np.core.defchararray.lower(message.split(" "))
