@@ -159,12 +159,13 @@ def main():
     'xlnx/export_dashboard_xlnx.xlsx',
     'yhoo/export_dashboard_yhoo.xlsx']
 
-    out = load_dataset(files, 'initial_data/prices.csv')
-    data = out.values # convert to numpy.ndarray
+    # out = load_dataset(files, 'initial_data/prices.csv')
+    # data = out.values # convert to numpy.ndarray
 
     # Read compiled data using:
-    # out = pd.read_csv("final_data/compiled_data.csv", encoding = "ISO-8859-1")
-    # data = out.values
+    out = pd.read_csv("final_data/compiled_data.csv", encoding = "ISO-8859-1")
+    data = out.values
+    print(data)
 
 if __name__ == "__main__":
     main()

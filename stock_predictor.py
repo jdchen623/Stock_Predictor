@@ -1,13 +1,17 @@
 import collections
 
 import numpy as np
-
+import pandas as pd
 import util
 import svm
 
+TRAIN_SPLIT = .6
+VALIDATION_SPLIT = .2
+TEST_SPLIT = .2
+
 def hello():
     print("Hello!")
-    
+
 def get_words(message):
     """Get the normalized list of words from a message string.
 
@@ -110,6 +114,7 @@ def fit_naive_bayes_model(matrix, labels):
     """
 
     # *** START CODE HERE ***
+    print("*******************training*******************")
     H, W = matrix.shape
     k = W
     phi_0 = np.zeros([k, ])
@@ -119,6 +124,8 @@ def fit_naive_bayes_model(matrix, labels):
     phi_y = 0
 
     for i in range(H):
+        print("training "+ str(i) + " of " + str(H))
+
         n_i = 0
         y_i = labels[i]
         x_i = matrix[i]
@@ -158,10 +165,14 @@ def predict_from_naive_bayes_model(model, matrix):
     Returns: The trained model
     """
     # *** START CODE HERE ***
+
+    print("*******************testing*******************")
+
     phi_0, phi_1, phi_y = model
     H, W = matrix.shape
     labels = np.zeros([H, ])
     for i in range(H):
+        print("testing "+ str(i) + " of " + str(H))
         x = matrix[i]
         # p_y_0 = 1
         # p_y_1 = 1
@@ -251,49 +262,87 @@ def compute_best_svm_radius(train_matrix, train_labels, val_matrix, val_labels, 
     return max_radius
     # *** END CODE HERE ***
 
+def load_dataset(csv_path):
+
+    print("*******************loading dataset*******************")
+
+    data = pd.read_csv(csv_path, encoding = "ISO-8859-1");
+    num_data_points = len(data.index);
+
+    train_tweets = data['Tweet content'].values[0:int(num_data_points * TRAIN_SPLIT)]
+    val_tweets = data['Tweet content'].values[int(num_data_points * TRAIN_SPLIT): int(num_data_points * TRAIN_SPLIT)+ int(num_data_points * VALIDATION_SPLIT)]
+    test_tweets = data['Tweet content'].values[int(num_data_points * TRAIN_SPLIT)+ int(num_data_points * VALIDATION_SPLIT):]
+
+    train_labels = data['increase'].values[0:int(num_data_points * TRAIN_SPLIT)]
+    val_labels = data['increase'].values[int(num_data_points * TRAIN_SPLIT): int(num_data_points * TRAIN_SPLIT)+ int(num_data_points * VALIDATION_SPLIT)]
+    test_labels = data['increase'].values[int(num_data_points * TRAIN_SPLIT)+ int(num_data_points * VALIDATION_SPLIT):]
+
+    return train_tweets, val_tweets, test_tweets, train_labels, val_labels, test_labels
 def main():
-    train_messages, train_labels = util.load_spam_dataset('../data/ds6_train.tsv')
-    val_messages, val_labels = util.load_spam_dataset('../data/ds6_val.tsv')
-    test_messages, test_labels = util.load_spam_dataset('../data/ds6_test.tsv')
-
-    dictionary = create_dictionary(train_messages)
-
-    util.write_json('./output/p06_dictionary', dictionary)
-
-    train_matrix = transform_text(train_messages, dictionary)
-
-    np.savetxt('./output/p06_sample_train_matrix', train_matrix[:100,:])
-
-    val_matrix = transform_text(val_messages, dictionary)
-    test_matrix = transform_text(test_messages, dictionary)
+    train_tweets, val_tweets, test_tweets, train_labels, val_labels, test_labels = load_dataset("final_data/compiled_data.csv")
+    dictionary = create_dictionary(train_tweets)
+    util.write_json('./output/dictionary', dictionary)
+    train_matrix = transform_text(train_tweets, dictionary)
+    val_matrix = transform_text(val_tweets, dictionary)
+    test_matrix = transform_text(test_tweets, dictionary)
 
     naive_bayes_model = fit_naive_bayes_model(train_matrix, train_labels)
-
     naive_bayes_predictions = predict_from_naive_bayes_model(naive_bayes_model, test_matrix)
-
-    np.savetxt('./output/p06_naive_bayes_predictions', naive_bayes_predictions)
-
     naive_bayes_accuracy = np.mean(naive_bayes_predictions == test_labels)
-
     print('Naive Bayes had an accuracy of {} on the testing set'.format(naive_bayes_accuracy))
-
     top_5_words = get_top_five_naive_bayes_words(naive_bayes_model, dictionary)
-
     print('The top 5 indicative words for Naive Bayes are: ', top_5_words)
 
-    util.write_json('./output/p06_top_indicative_words', top_5_words)
-
     optimal_radius = compute_best_svm_radius(train_matrix, train_labels, val_matrix, val_labels, [0.01, 0.1, 1, 10])
-
     util.write_json('./output/p06_optimal_radius', optimal_radius)
-
     print('The optimal SVM radius was {}'.format(optimal_radius))
-
     svm_predictions = svm.train_and_predict_svm(train_matrix, train_labels, test_matrix, optimal_radius)
-
     svm_accuracy = np.mean(svm_predictions == test_labels)
-
     print('The SVM model had an accuracy of {} on the testing set'.format(svm_accuracy, optimal_radius))
+
+
+    # train_messages, train_labels = util.load_spam_dataset('../data/ds6_train.tsv')
+    # val_messages, val_labels = util.load_spam_dataset('../data/ds6_val.tsv')
+    # test_messages, test_labels = util.load_spam_dataset('../data/ds6_test.tsv')
+    #
+    # dictionary = create_dictionary(train_messages)
+    #
+    # util.write_json('./output/p06_dictionary', dictionary)
+    #
+    # train_matrix = transform_text(train_messages, dictionary)
+    #
+    # np.savetxt('./output/p06_sample_train_matrix', train_matrix[:100,:])
+    #
+    # val_matrix = transform_text(val_messages, dictionary)
+    # test_matrix = transform_text(test_messages, dictionary)
+    #
+    # naive_bayes_model = fit_naive_bayes_model(train_matrix, train_labels)
+    #
+    # naive_bayes_predictions = predict_from_naive_bayes_model(naive_bayes_model, test_matrix)
+    #
+    # np.savetxt('./output/p06_naive_bayes_predictions', naive_bayes_predictions)
+    #
+    # naive_bayes_accuracy = np.mean(naive_bayes_predictions == test_labels)
+    #
+    # print('Naive Bayes had an accuracy of {} on the testing set'.format(naive_bayes_accuracy))
+    #
+    # top_5_words = get_top_five_naive_bayes_words(naive_bayes_model, dictionary)
+    #
+    # print('The top 5 indicative words for Naive Bayes are: ', top_5_words)
+    #
+    # util.write_json('./output/p06_top_indicative_words', top_5_words)
+    #
+    # optimal_radius = compute_best_svm_radius(train_matrix, train_labels, val_matrix, val_labels, [0.01, 0.1, 1, 10])
+    #
+    # util.write_json('./output/p06_optimal_radius', optimal_radius)
+    #
+    # print('The optimal SVM radius was {}'.format(optimal_radius))
+    #
+    # svm_predictions = svm.train_and_predict_svm(train_matrix, train_labels, test_matrix, optimal_radius)
+    #
+    # svm_accuracy = np.mean(svm_predictions == test_labels)
+    #
+    # print('The SVM model had an accuracy of {} on the testing set'.format(svm_accuracy, optimal_radius))
 
 if __name__ == "__main__":
     main()
