@@ -62,7 +62,7 @@ def create_dictionary(messages):
     dict = {}
     uuid = 0
     for word in counts:
-        if counts[word] >= 5:
+        if counts[word] >= 0:
             dict[word] = uuid
             uuid += 1
     return dict
@@ -262,6 +262,7 @@ def compute_best_svm_radius(train_matrix, train_labels, val_matrix, val_labels, 
     return max_radius
     # *** END CODE HERE ***
 
+
 def load_dataset(csv_path):
 
     print("*******************loading dataset*******************")
@@ -278,6 +279,7 @@ def load_dataset(csv_path):
     test_labels = data['increase'].values[int(num_data_points * TRAIN_SPLIT)+ int(num_data_points * VALIDATION_SPLIT):]
 
     return train_tweets, val_tweets, test_tweets, train_labels, val_labels, test_labels
+
 def main():
     train_tweets, val_tweets, test_tweets, train_labels, val_labels, test_labels = load_dataset("final_data/compiled_data.csv")
     dictionary = create_dictionary(train_tweets)
@@ -289,6 +291,13 @@ def main():
     naive_bayes_model = fit_naive_bayes_model(train_matrix, train_labels)
     naive_bayes_predictions = predict_from_naive_bayes_model(naive_bayes_model, test_matrix)
     naive_bayes_accuracy = np.mean(naive_bayes_predictions == test_labels)
+    print("naive_bayes_results: ")
+    unique, counts = np.unique(naive_bayes_predictions, return_counts=True)
+    print(dict(zip(unique, counts)))
+    print("test_labels: " )
+    unique, counts = np.unique(test_labels, return_counts=True)
+    print(dict(zip(unique, counts)))
+
     print('Naive Bayes had an accuracy of {} on the testing set'.format(naive_bayes_accuracy))
     top_5_words = get_top_five_naive_bayes_words(naive_bayes_model, dictionary)
     print('The top 5 indicative words for Naive Bayes are: ', top_5_words)
