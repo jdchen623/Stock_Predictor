@@ -162,6 +162,7 @@ def main():
     out = load_dataset(files, 'initial_data/prices.csv')
     data = out.values # convert to numpy.ndarray
 
+    print(data.shape)
     # Read compiled data using:
     # out = pd.read_csv("final_data/compiled_data.csv", encoding = "ISO-8859-1")
     # data = out.values
