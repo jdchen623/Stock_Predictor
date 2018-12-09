@@ -20,6 +20,7 @@ def normalize(data):
         line = re.sub(r"\s", " ", line)
         line = re.sub(r"[\S]*(Ã|â|Â|¦|œ)[\S]*", "", line)
         line = re.sub(r"[\S]*t\.co[\S]*", "", line)
+        line = re.sub(r"[^\x00-\x7F]+", "", line)
         word_tokens = tokenizer.tokenize(line)
         filtered_sentence = ""
         for w in word_tokens:
