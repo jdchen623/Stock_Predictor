@@ -1,8 +1,11 @@
+import csv
+
 import matplotlib.pyplot as plt
 import numpy as np
+import json
 
 
-def add_intercept(x):
+def add_intercept_fn(x):
     """Add intercept to matrix x.
 
     Args:
@@ -17,8 +20,7 @@ def add_intercept(x):
 
     return new_x
 
-
-def load_dataset(csv_path, label_col='y', add_intercept=False):
+def load_csv(csv_path, label_col='y', add_intercept=False):
     """Load dataset from a CSV file.
 
     Args:
@@ -31,18 +33,8 @@ def load_dataset(csv_path, label_col='y', add_intercept=False):
         ys: Numpy array of y-values (labels).
     """
 
-    def add_intercept_fn(x):
-        global add_intercept
-        return add_intercept(x)
-
-    # Validate label_col argument
-    allowed_label_cols = ('y', 't')
-    if label_col not in allowed_label_cols:
-        raise ValueError('Invalid label_col: {} (expected {})'
-                         .format(label_col, allowed_label_cols))
-
     # Load headers
-    with open(csv_path, 'r') as csv_fh:
+    with open(csv_path, 'r', newline='') as csv_fh:
         headers = csv_fh.readline().strip().split(',')
 
     # Load features and labels
@@ -59,6 +51,28 @@ def load_dataset(csv_path, label_col='y', add_intercept=False):
 
     return inputs, labels
 
+def load_spam_dataset(tsv_path):
+    """Load the spam dataset from a TSV file
+
+    Args:
+         csv_path: Path to TSV file containing dataset.
+
+    Returns:
+        messages: A list of string values containing the text of each message.
+        labels: The binary labels (0 or 1) for each message. A 1 indicates spam.
+    """
+
+    messages = []
+    labels = []
+
+    with open(tsv_path, 'r', newline='', encoding='utf8') as tsv_file:
+        reader = csv.reader(tsv_file, delimiter='\t')
+
+        for label, message in reader:
+            messages.append(message)
+            labels.append(1 if label == 'spam' else 0)
+
+    return messages, np.array(labels)
 
 def plot(x, y, theta, save_path, correction=1.0):
     """Plot dataset and fitted logistic regression parameters.
@@ -84,3 +98,29 @@ def plot(x, y, theta, save_path, correction=1.0):
     plt.xlabel('x1')
     plt.ylabel('x2')
     plt.savefig(save_path)
+
+
+def plot_contour(predict_fn):
+    """Plot a contour given the provided prediction function"""
+    x, y = np.meshgrid(np.linspace(-10, 10, num=20), np.linspace(-10, 10, num=20))
+    z = np.zeros(x.shape)
+
+    for i in range(x.shape[0]):
+        for j in range(y.shape[1]):
+            z[i, j] = predict_fn([x[i, j], y[i, j]])
+
+    plt.contourf(x, y, z, levels=[-float('inf'), 0, float('inf')], colors=['orange', 'cyan'])
+
+def plot_points(x, y):
+    """Plot some points where x are the coordinates and y is the label"""
+    x_one = x[y == 0, :]
+    x_two = x[y == 1, :]
+
+    plt.scatter(x_one[:,0], x_one[:,1], marker='x', color='red')
+    plt.scatter(x_two[:,0], x_two[:,1], marker='o', color='blue')
+    plt.savefig("plota")
+
+def write_json(filename, value):
+    """Write the provided value as JSON to the given filename"""
+    with open(filename, 'w') as f:
+        json.dump(value, f)
