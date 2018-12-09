@@ -5,6 +5,11 @@ from collections import Counter
 import pandas as pd
 
 
+def normalize(data):
+    data = data.values
+    print(data[0])
+
+
 def clean_str(string):
     """
     Tokenization/string cleaning for datasets.
@@ -113,6 +118,8 @@ def load_dataset(csv_path):
 
     data = pd.read_csv(csv_path, encoding = "ISO-8859-1");
     num_data_points = len(data.index);
+
+    data = normalize(data)
 
     # train_tweets = data['Tweet content'].values[0:int(num_data_points * TRAIN_SPLIT)]
     # val_tweets = data['Tweet content'].values[int(num_data_points * TRAIN_SPLIT): int(num_data_points * TRAIN_SPLIT)+ int(num_data_points * VALIDATION_SPLIT)]
