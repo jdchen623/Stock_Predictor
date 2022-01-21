@@ -88,7 +88,7 @@ imagesize==0.7.1
 Inflector==2.0.12
 ipaddress==1.0.18
 ipykernel==4.6.1
-ipython==5.5.0
+ipython==7.16.3
 ipython-genutils==0.2.0
 ipython-sql==0.3.8
 ipywidgets==7.0.0
